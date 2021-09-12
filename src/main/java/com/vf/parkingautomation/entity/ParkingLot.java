@@ -1,5 +1,6 @@
 package com.vf.parkingautomation.entity;
 
+import com.vf.parkingautomation.model.dto.ParkingLotDTO;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -22,6 +23,17 @@ public class ParkingLot {
     @NotNull(message = "Slot's available status cannot be null.")
     private Boolean available = Boolean.TRUE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Vehicle vehicle;
+
+    public ParkingLotDTO toDTO(){
+        ParkingLotDTO dto = new ParkingLotDTO();
+        dto.setId(getId());
+        dto.setVersion(getVersion());
+        dto.setSlotNumber(getSlotNumber());
+        dto.setAvailable(getAvailable());
+        dto.setVehicleDTO(getVehicle().toDTO());
+
+        return dto;
+    }
 }

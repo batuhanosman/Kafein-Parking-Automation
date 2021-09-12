@@ -1,5 +1,6 @@
 package com.vf.parkingautomation.entity;
 
+import com.vf.parkingautomation.model.dto.VehicleDTO;
 import com.vf.parkingautomation.model.enums.VehicleType;
 import lombok.Data;
 
@@ -30,5 +31,17 @@ public class Vehicle {
     @OneToOne(cascade = CascadeType.ALL)
     @NotNull(message = "Ticket cannot be null")
     private Ticket ticket;
+
+    public VehicleDTO toDTO(){
+        VehicleDTO dto = new VehicleDTO();
+        dto.setId(getId());
+        dto.setVersion(getVersion());
+        dto.setPlateNumber(getPlateNumber());
+        dto.setColor(getColor());
+        dto.setVehicleType(getVehicleType());
+        dto.setTicketDTO(getTicket().toDTO());
+
+        return dto;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.vf.parkingautomation.entity;
 
+import com.vf.parkingautomation.model.dto.TicketDTO;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -25,4 +26,15 @@ public class Ticket {
 
     @ElementCollection(fetch = FetchType.LAZY)
     private List<Long> slotNumbers;
+
+    public TicketDTO toDTO(){
+        TicketDTO dto = new TicketDTO();
+        dto.setId(getId());
+        dto.setVersion(getVersion());
+        dto.setVehiclePlateNumber(getVehiclePlateNumber());
+        dto.setVehicleColor(getVehicleColor());
+        dto.setSlotNumbers(getSlotNumbers());
+
+        return dto;
+    }
 }
