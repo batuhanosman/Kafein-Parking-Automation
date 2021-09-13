@@ -6,24 +6,24 @@ import com.vf.parkingautomation.entity.ParkingLot;
 import com.vf.parkingautomation.entity.Ticket;
 import com.vf.parkingautomation.entity.Vehicle;
 import com.vf.parkingautomation.exception.ThereIsNoSlot;
+import com.vf.parkingautomation.exception.ThereIsNoVehicle;
 import com.vf.parkingautomation.model.dto.TicketDTO;
 import com.vf.parkingautomation.model.enums.Status;
 import com.vf.parkingautomation.model.request.ParkVehicleRequest;
 import com.vf.parkingautomation.model.response.ParkVehicleResponse;
 import com.vf.parkingautomation.model.response.ParkingLotStatusResponse;
 import com.vf.parkingautomation.repository.ParkingLotRepository;
+import com.vf.parkingautomation.repository.TicketRepository;
+import com.vf.parkingautomation.repository.VehicleRepository;
 import com.vf.parkingautomation.service.ParkingLotService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,12 +31,16 @@ import java.util.stream.Collectors;
 public class ParkingLotServiceImpl implements ParkingLotService {
 
     private final ParkingLotRepository parkingLotRepository;
+    private final TicketRepository ticketRepository;
+    private final VehicleRepository vehicleRepository;
 
     private final Logger logger = LoggerFactory.getLogger(ParkingLotController.class);
 
     @Autowired
-    public ParkingLotServiceImpl(ParkingLotRepository parkingLotRepository) {
+    public ParkingLotServiceImpl(ParkingLotRepository parkingLotRepository, TicketRepository ticketRepository, VehicleRepository vehicleRepository) {
         this.parkingLotRepository = parkingLotRepository;
+        this.ticketRepository = ticketRepository;
+        this.vehicleRepository = vehicleRepository;
     }
 
 
@@ -89,6 +93,7 @@ public class ParkingLotServiceImpl implements ParkingLotService {
         Vehicle vehicle = new Vehicle();
         vehicle.setPlateNumber(request.getPlateNumber());
         vehicle.setColor(request.getVehicleColor());
+        vehicle.setVehicleType(request.getVehicleType());
         vehicle.setTicket(ticket);
 
 
@@ -111,11 +116,42 @@ public class ParkingLotServiceImpl implements ParkingLotService {
 
     @Override
     public ParkingLotStatusResponse status() {
-        return null;
+        List<Ticket> ticketList = ticketRepository.findAll();
+        return new ParkingLotStatusResponse(ticketList.isEmpty() ?
+                Collections.emptyList() :
+                ticketList.stream().map(ticket -> ticket.toDTO()).collect(Collectors.toList()), Status.SUCCESS);
     }
 
     @Override
     public ParkVehicleResponse leave(Long slotNumber) {
-        return null;
+        List<ParkingLot> parkingLotList = parkingLotRepository.findAll(Sort.by(Sort.Direction.ASC ,"slotNumber"));
+        ParkingLot vehicleParkingLot = parkingLotRepository.findOneBySlotNumber(slotNumber);
+        Vehicle vehicle = vehicleParkingLot.getVehicle();
+        int slotSize = vehicleParkingLot.getVehicle().getVehicleType().getSize(), lastSlotNumber = 0;
+        TicketDTO ticket = null;
+
+        if(Optional.ofNullable(vehicleParkingLot).isPresent()){
+
+            Long vehicleSlotNumber = parkingLotList.stream().filter(parkingLot ->
+                parkingLot.getVehicle() == vehicleParkingLot.getVehicle()
+            ).findFirst().get().getSlotNumber();
+
+            for (int i = vehicleSlotNumber.intValue()-1; i < (vehicleSlotNumber.intValue()-1) + slotSize; i++){
+                if(Objects.isNull(ticket)) ticket = parkingLotList.get(i).getVehicle().getTicket().toDTO();
+                parkingLotList.get(i).setVehicle(null);
+                parkingLotList.get(i).setAvailable(true);
+                lastSlotNumber = i;
+            }
+        }else{
+            throw new ThereIsNoVehicle(ApiErrorConstants.THERE_IS_NO_VEHICLE);
+        }
+
+        if(!parkingLotList.get(lastSlotNumber + 1).equals(parkingLotList.get(parkingLotList.size()-1))){
+            parkingLotList.get(lastSlotNumber + 1).setAvailable(true);
+        }
+
+        vehicleRepository.delete(vehicle);
+
+        return new ParkVehicleResponse(ticket, Status.SUCCESS);
     }
 }
