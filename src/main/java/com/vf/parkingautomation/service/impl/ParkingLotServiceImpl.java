@@ -56,18 +56,11 @@ public class ParkingLotServiceImpl implements ParkingLotService {
         }
 
         for(int i = 0; i < parkingLotList.size(); i++){
-                if(parkingLotList.get(i).getAvailable().equals(Boolean.TRUE)){
+                if(parkingLotList.get(i).getAvailable()){
                     slotNumbers.add(parkingLotList.get(i).getSlotNumber());
                     if(slotNumbers.size() == request.getVehicleType().getSize()){
-                        if(i != parkingLotList.size() - 1){
-                            if(parkingLotList.get(i).getAvailable()){
-                                ticket = parkTheVehicle(parkingLotList, request, slotNumbers, false);
-                                return new ParkVehicleResponse(ticket, Status.SUCCESS);
-                            }
-                        }else{
-                            ticket = parkTheVehicle(parkingLotList, request, slotNumbers, true);
-                            return new ParkVehicleResponse(ticket, Status.SUCCESS);
-                        }
+                        ticket = parkTheVehicle(parkingLotList, request, slotNumbers, i == parkingLotList.size() - 1);
+                        return new ParkVehicleResponse(ticket, Status.SUCCESS);
                     }
                 }else{
                     slotNumbers.clear();
@@ -124,27 +117,30 @@ public class ParkingLotServiceImpl implements ParkingLotService {
     public ParkVehicleResponse leave(Long slotNumber) {
         List<ParkingLot> parkingLotList = parkingLotRepository.findAll(Sort.by(Sort.Direction.ASC ,"slotNumber"));
         ParkingLot vehicleParkingLot = parkingLotRepository.findOneBySlotNumber(slotNumber);
+
+        if(!Optional.ofNullable(vehicleParkingLot).isPresent())
+            throw new ThereIsNoVehicle(ApiErrorConstants.THERE_IS_NO_SLOT);
+        if(!Optional.ofNullable(vehicleParkingLot.getVehicle()).isPresent())
+            throw new ThereIsNoVehicle(ApiErrorConstants.THERE_IS_NO_VEHICLE);
+
         Vehicle vehicle = vehicleParkingLot.getVehicle();
         int slotSize = vehicleParkingLot.getVehicle().getVehicleType().getSize(), lastSlotNumber = 0;
         TicketDTO ticket = null;
 
-        if(Optional.ofNullable(vehicleParkingLot).isPresent()){
 
-            Long vehicleSlotNumber = parkingLotList.stream().filter(parkingLot ->
-                parkingLot.getVehicle() == vehicleParkingLot.getVehicle()
-            ).findFirst().get().getSlotNumber();
+        Long vehicleSlotNumber = parkingLotList.stream().filter(parkingLot ->
+            parkingLot.getVehicle() == vehicleParkingLot.getVehicle()
+        ).findFirst().get().getSlotNumber();
 
-            for (int i = vehicleSlotNumber.intValue()-1; i < (vehicleSlotNumber.intValue()-1) + slotSize; i++){
-                if(Objects.isNull(ticket)) ticket = parkingLotList.get(i).getVehicle().getTicket().toDTO();
-                parkingLotList.get(i).setVehicle(null);
-                parkingLotList.get(i).setAvailable(true);
-                lastSlotNumber = i;
-            }
-        }else{
-            throw new ThereIsNoVehicle(ApiErrorConstants.THERE_IS_NO_VEHICLE);
+        for (int i = vehicleSlotNumber.intValue()-1; i < (vehicleSlotNumber.intValue()-1) + slotSize; i++){
+            if(Objects.isNull(ticket)) ticket = parkingLotList.get(i).getVehicle().getTicket().toDTO();
+            parkingLotList.get(i).setVehicle(null);
+            parkingLotList.get(i).setAvailable(true);
+            lastSlotNumber = i;
         }
 
-        if(!parkingLotList.get(lastSlotNumber + 1).equals(parkingLotList.get(parkingLotList.size()-1))){
+
+        if(!parkingLotList.get(lastSlotNumber).equals(parkingLotList.get(parkingLotList.size()-1))){
             parkingLotList.get(lastSlotNumber + 1).setAvailable(true);
         }
 
