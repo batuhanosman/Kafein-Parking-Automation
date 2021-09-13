@@ -46,3 +46,20 @@ Just go to [Swagger Link](http://localhost:8999/swagger-ui.html#/) after run the
 
 ## Postman Collection
 You can use this link to copy collections of API's -> https://www.getpostman.com/collections/8b0d1695dcf62f1152c6
+
+
+##Initial Scripts
+
+CREATE DATABASE IF NOT EXISTS vf DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+INSERT INTO vf.parking_lot(version, slot_number, available)
+values (0, 1, 1),
+	   (0, 2, 1),
+	   (0, 3, 1),
+	   (0, 4, 1),
+	   (0, 5, 1),
+	   (0, 6, 1),
+	   (0, 7, 1),
+	   (0, 8, 1),
+	   (0, 9, 1),
+	   (0, 10, 1);
