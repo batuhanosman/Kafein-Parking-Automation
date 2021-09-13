@@ -61,12 +61,10 @@ public class ParkingLotServiceImpl implements ParkingLotService {
                     if(slotNumbers.size() == request.getVehicleType().getSize()){
                         if(i != parkingLotList.size() - 1){
                             if(parkingLotList.get(i).getAvailable()){
-                                // create
                                 ticket = parkTheVehicle(parkingLotList, request, slotNumbers, false);
                                 return new ParkVehicleResponse(ticket, Status.SUCCESS);
                             }
                         }else{
-                            //create
                             ticket = parkTheVehicle(parkingLotList, request, slotNumbers, true);
                             return new ParkVehicleResponse(ticket, Status.SUCCESS);
                         }

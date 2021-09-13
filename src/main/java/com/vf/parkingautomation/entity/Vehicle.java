@@ -3,9 +3,9 @@ package com.vf.parkingautomation.entity;
 import com.vf.parkingautomation.model.dto.VehicleDTO;
 import com.vf.parkingautomation.model.enums.VehicleType;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -19,10 +19,10 @@ public class Vehicle {
     @Version
     private int version;
 
-    @NotEmpty(message = "Plate Number can not be empty.")
+    @NotBlank(message = "Plate Number can not be empty.")
     private String plateNumber;
 
-    @NotEmpty(message = "Color can not be empty.")
+    @NotBlank(message = "Color can not be empty.")
     private String color;
 
     @NotNull(message = "vehicleType cannot be null")

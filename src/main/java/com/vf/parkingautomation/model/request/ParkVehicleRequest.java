@@ -1,18 +1,19 @@
 package com.vf.parkingautomation.model.request;
 
 import com.vf.parkingautomation.model.enums.VehicleType;
+import org.hibernate.validator.constraints.NotBlank;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class ParkVehicleRequest {
 
-    @NotEmpty(message = "Plate Number Cannot Be Empty")
+    @NotBlank(message = "Plate Number Cannot Be Empty")
     private String  plateNumber;
 
-    @NotEmpty(message = "Vehicle Color Cannot Be Empty")
+    @NotBlank(message = "Vehicle Color Cannot Be Empty")
     private String vehicleColor;
 
-    @NotEmpty(message = "Vehicle Type Cannot Be Empty")
+    @NotNull(message = "Vehicle Type Cannot Be Null")
     private VehicleType vehicleType;
 
     public String getPlateNumber() {

@@ -2,9 +2,9 @@ package com.vf.parkingautomation.entity;
 
 import com.vf.parkingautomation.model.dto.TicketDTO;
 import lombok.Data;
+import org.hibernate.validator.constraints.NotBlank;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 @Entity
@@ -18,10 +18,10 @@ public class Ticket {
     @Version
     private int version;
 
-    @NotEmpty(message = "Plate Number can not be empty.")
+    @NotBlank(message = "Plate Number can not be empty.")
     private String vehiclePlateNumber;
 
-    @NotEmpty(message = "Color can not be empty.")
+    @NotBlank(message = "Color can not be empty.")
     private String vehicleColor;
 
     @ElementCollection(fetch = FetchType.LAZY)
